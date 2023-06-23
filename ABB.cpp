@@ -417,10 +417,5 @@ void balanceamento(Arv* raiz)
 
 int main(){
 	Arv *raiz = NULL;
-	inserirI(&raiz,6);
-	inserirI(&raiz,1);
-	inserirI(&raiz,7);
-	inserirI(&raiz,8);
-	printf("%d\n",alturaR(raiz));
 	return 0;
 }

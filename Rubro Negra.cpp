@@ -147,51 +147,206 @@ void inserir(No **raiz, int valor){
 	corrigir(raiz,novo);
 }
 
-// Função auxiliar para enfileirar um nó
-void enqueue(No* node, No** queue, int* rear) {
-    queue[*rear] = node;
-    (*rear)++;
+No* buscarMenor(No* no) {
+    No* atual = no;
+
+    while (atual && atual->e)
+        atual = atual->e;
+
+    return atual;
 }
 
-// Função auxiliar para desenfileirar um nó
+No* sucessor(No* no) {
+    if (no->d)
+        return buscarMenor(no->d);
+
+    No* pai = no->pai;
+    while (pai && no == pai->d) {
+        no = pai;
+        pai = pai->pai;
+    }
+
+    return pai;
+}
+
+void transplantar(No** raiz, No* antigoNo, No* novoNo) {
+    if (antigoNo->pai == NULL) {
+        *raiz = novoNo;
+    } else if (antigoNo == antigoNo->pai->e) {
+        antigoNo->pai->e = novoNo;
+    } else {
+        antigoNo->pai->d = novoNo;
+    }
+
+    if (novoNo != NULL) {
+        novoNo->pai = antigoNo->pai;
+    }
+}
+
+void corrigirExclusao(No** raiz, No* no) {
+    No* irmao;
+
+    while (no != *raiz && no->cor == BLACK) {
+        if (no == no->pai->e) {
+            irmao = no->pai->d;
+
+            if (irmao->cor == RED) {
+                irmao->cor = BLACK;
+                no->pai->cor = RED;
+                rotacaoEsquerda(raiz, no->pai);
+                irmao = no->pai->d;
+            }
+
+            if ((!irmao->e || irmao->e->cor == BLACK) && (!irmao->d || irmao->d->cor == BLACK)) {
+                irmao->cor = RED;
+                no = no->pai;
+            } else {
+                if (!irmao->d || irmao->d->cor == BLACK) {
+                    if (irmao->e)
+                        irmao->e->cor = BLACK;
+
+                    irmao->cor = RED;
+                    rotacaoDireita(raiz, irmao);
+                    irmao = no->pai->d;
+                }
+
+                irmao->cor = no->pai->cor;
+                no->pai->cor = BLACK;
+                if (irmao->d)
+                    irmao->d->cor = BLACK;
+
+                rotacaoEsquerda(raiz, no->pai);
+                no = *raiz;
+            }
+        } else {
+            irmao = no->pai->e;
+
+            if (irmao->cor == RED) {
+                irmao->cor = BLACK;
+                no->pai->cor = RED;
+                rotacaoDireita(raiz, no->pai);
+                irmao = no->pai->e;
+            }
+
+            if ((!irmao->d || irmao->d->cor == BLACK) && (!irmao->e || irmao->e->cor == BLACK)) {
+                irmao->cor = RED;
+                no = no->pai;
+            } else {
+                if (!irmao->e || irmao->e->cor == BLACK) {
+                    if (irmao->d)
+                        irmao->d->cor = BLACK;
+
+                    irmao->cor = RED;
+                    rotacaoEsquerda(raiz, irmao);
+                    irmao = no->pai->e;
+                }
+
+                irmao->cor = no->pai->cor;
+                no->pai->cor = BLACK;
+                if (irmao->e)
+                    irmao->e->cor = BLACK;
+
+                rotacaoDireita(raiz, no->pai);
+                no = *raiz;
+            }
+        }
+    }
+
+    no->cor = BLACK;
+}
+
+void excluir(No** raiz, No* no) {
+    No* substituto = no;
+    No* filhoSubstituto = NULL;
+    No* noFilho = NULL;
+
+    bool corOriginalSubstituto = substituto->cor;
+
+    if (no->e == NULL) {
+        noFilho = no->d;
+        transplantar(raiz, no, no->d);
+    } else if (no->d == NULL) {
+        noFilho = no->e;
+        transplantar(raiz, no, no->e);
+    } else {
+        substituto = buscarMenor(no->d);
+        corOriginalSubstituto = substituto->cor;
+        noFilho = substituto->d;
+
+        if (substituto->pai == no) {
+            if (noFilho != NULL) {
+                noFilho->pai = substituto;
+            }
+        } else {
+            transplantar(raiz, substituto, substituto->d);
+            substituto->d = no->d;
+            substituto->d->pai = substituto;
+        }
+
+        transplantar(raiz, no, substituto);
+        substituto->e = no->e;
+        substituto->e->pai = substituto;
+        substituto->cor = no->cor;
+    }
+
+    delete no;
+
+    if (corOriginalSubstituto == BLACK) {
+        corrigirExclusao(raiz, noFilho);
+    }
+}
+
+
+
+void enqueue(No* node, No** queue, int* r) {
+    queue[*r] = node;
+    (*r)++;
+}
+
 No* dequeue(No** queue, int* front) {
     (*front)++;
     return queue[*front - 1];
 }
 
-// Função para exibir a Red-Black Tree por níveis
-void printRedBlackTree(No* root) {
-    if (root == NULL)
+void printRedBlackTree(No* raiz) {
+    if (raiz == NULL)
         return;
 
-    // Inicialização da fila
     int front = 0;
-    int rear = 0;
-    No* queue[100];  // Tamanho máximo da fila (pode ser ajustado conforme necessário)
+    int r = 0;
+    No* queue[100];  
 
-    // Enfileirar o nó raiz
-    enqueue(root, queue, &rear);
+    enqueue(raiz, queue, &r);
 
-    printf("Red-Black Tree por níveis:\n");
+    printf("Red-Black Tree por nivel:\n");
 
-    // Percorrer a árvore por níveis
-    while (front < rear) {
-        No* current = dequeue(queue, &front);
+    while (front < r) {
+        No* atual = dequeue(queue, &front);
 
-        // Imprimir o nó atual
-        printf("Data: %d, Color: %s\n", current->valor, current->cor == RED ? "Red" : "Black");
+        printf("Data: %d, Cor: %s\n", atual->valor, atual->cor == RED ? "Red" : "Black");
 
-        // Enfileirar os filhos do nó atual, se existirem
-        if (current->e != NULL)
-            enqueue(current->e, queue, &rear);
-        if (current->d != NULL)
-            enqueue(current->d, queue, &rear);
+        if (atual->e != NULL)
+            enqueue(atual->e, queue, &r);
+        if (atual->d != NULL)
+            enqueue(atual->d, queue, &r);
+    }
+}
+
+No* busca(No* raiz, int valor) {
+    if (raiz == NULL || raiz->valor == valor) {
+        return raiz;
+    }
+
+    if (valor < raiz->valor) {
+        return busca(raiz->e, valor);
+    } else {
+        return busca(raiz->d, valor);
     }
 }
 
 int main(){
 	No* raiz = NULL;
-	/*inserir(&raiz,8);
+	inserir(&raiz,8);
 	inserir(&raiz,4);
 	inserir(&raiz,12);
 	inserir(&raiz,2);
@@ -206,7 +361,13 @@ int main(){
 	inserir(&raiz,11);
 	inserir(&raiz,13);
 	inserir(&raiz,15);
-	inserir(&raiz,16);*/
+	inserir(&raiz,16);
+	printRedBlackTree(raiz);
+	excluir(&raiz,busca(raiz,14));
+	excluir(&raiz,busca(raiz,2));
+	excluir(&raiz,busca(raiz,1));
+	excluir(&raiz,busca(raiz,8));
+	excluir(&raiz,busca(raiz,10));
 	printRedBlackTree(raiz);
 	return 0;
 }
