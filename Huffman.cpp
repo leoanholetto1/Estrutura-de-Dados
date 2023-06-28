@@ -212,7 +212,7 @@ void descomprimir(Arvh *A,Palavras *L,char comp[]){
 }
 
 int main() {
-    char frase[] = "texto";
+    char frase[] = "aaaa aaaaaaaaaaaaaa bbbbbbbbb aaaa aaaaaaaa aaaa aaaa aaaa bbbbbbbbb";
     char comp[1000] =""; 
     Palavras *L = NULL;
     Arvh *huff;
