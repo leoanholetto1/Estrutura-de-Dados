@@ -234,7 +234,7 @@ int contaNo(Arv *raiz,int *cont){
 void exclusaoABB(Arv **raiz,Arv *filho,Arv *pai){
 	Arv *paisub,*sub;
 	if(filho->e==NULL && filho->d==NULL){ //folha
-		if(filho!=raiz){
+		if(filho!= *raiz){
 			if(filho == pai->e ){
 				pai->e = NULL;
 			}
@@ -248,7 +248,7 @@ void exclusaoABB(Arv **raiz,Arv *filho,Arv *pai){
 	}
 	else{
 		if(filho->e==NULL || filho->d==NULL){ //tem um filho
-			if(filho!=raiz){
+			if(filho!= *raiz){
 				if(filho == pai -> e){
 					if(filho->e == NULL){
 						pai->e = filho->d;
@@ -298,7 +298,7 @@ void exclusaoABB(Arv **raiz,Arv *filho,Arv *pai){
 void exclusaoABBBalanceada(Arv **raiz,Arv *filho,Arv *pai,char lado){
 	Arv *paisub,*sub;
 	if(filho->e==NULL && filho->d==NULL){ //folha
-		if(filho!=raiz){
+		if(filho!= *raiz){
 			if(filho == pai->e ){
 				pai->e = NULL;
 			}
@@ -312,7 +312,7 @@ void exclusaoABBBalanceada(Arv **raiz,Arv *filho,Arv *pai,char lado){
 	}
 	else{
 		if(filho->e==NULL || filho->d==NULL){ //tem um filho
-			if(filho!=raiz){
+			if(filho!= *raiz){
 				if(filho == pai -> e){
 					if(filho->e == NULL){
 						pai->e = filho->d;
@@ -377,10 +377,10 @@ void exclusaoABBBalanceada(Arv **raiz,Arv *filho,Arv *pai,char lado){
 	}
 }
 
-void balanceamento(Arv* raiz)
+void balanceamento(Arv** raiz)
 {
 	int qd, qe, fb, aux;
-	ArvBin r = *raiz, *e, *pai;
+	ArvBin *r , *e, *pai;
 	Fila *f;
 	init(&f);
 	enqueue(&f, *raiz);
